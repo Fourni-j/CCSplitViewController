@@ -241,7 +241,7 @@
         self.lateralViewWidth = 256;
         self.insetsContentView = 0;
         self.separatorColor = [UIColor clearColor];
-        self.viewControllers = viewControllers;
+        _viewControllers = viewControllers;
     }
     return self;
 }
@@ -262,7 +262,7 @@
         [self.firstView addSubview:[self.viewControllers[0] view]];
         [self.viewControllers[0] didMoveToParentViewController:self];
         [self.firstView.subviews[0] mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.edges.mas_equalTo(self.firstView);
+            make.edges.equalTo(self.firstView);
         }];
     }
     
@@ -294,9 +294,8 @@
     [self.view addSubview:self.separatorView];
     [self.view addSubview:self.secondView];
     
-    [self addControllersToViews];
-    
     [self createView];
+    [self addControllersToViews];
     
     BOOL portrait = NO;
     
@@ -320,6 +319,12 @@
         else
             [self updateLateralViewForPortrait];
     }
+}
+
+- (void)viewWillLayoutSubviews
+{
+    [super viewWillLayoutSubviews];
+    [self.view setNeedsLayout];
 }
 
 - (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
@@ -421,13 +426,15 @@
     [self addChildViewController:self.viewControllers[1]];
     
     self.navigationItem.titleView = nil;
+    self.navigationItem.leftBarButtonItems = nil;
+    self.navigationItem.rightBarButtonItems = nil;
     
     UIView *view = [self.viewControllers[1] view];
 
     [self.secondView addSubview:view];
     [self.viewControllers[1] didMoveToParentViewController:self];
     [view mas_makeConstraints:^(MASConstraintMaker *make) {
-        make.edges.mas_equalTo(self.secondView);
+        make.edges.equalTo(self.secondView);
     }];
     
     [self.view layoutIfNeeded];
@@ -440,54 +447,54 @@
     {
         [self.firstView mas_makeConstraints:^(MASConstraintMaker *make) {
             self.lateralWidth = make.width.equalTo(@(self.lateralViewWidth));
-            make.left.mas_equalTo(self.view);
-            make.top.mas_equalTo(self.view);
-            make.bottom.mas_equalTo(self.view);
+            make.left.equalTo(self.view);
+            make.top.equalTo(self.view);
+            make.bottom.equalTo(self.view);
         }];
         
         [self.separatorView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.left.mas_equalTo(self.firstView.mas_right);
-            make.top.mas_equalTo(self.view);
-            make.bottom.mas_equalTo(self.view);
-            make.width.mas_equalTo(@(1 / [UIScreen mainScreen].scale));
+            make.left.equalTo(self.firstView.mas_right);
+            make.top.equalTo(self.view);
+            make.bottom.equalTo(self.view);
+            make.width.equalTo(@1);
         }];
         
         [self.secondView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.right.mas_equalTo(self.view);
-            make.top.mas_equalTo(self.view);
-            make.bottom.mas_equalTo(self.view);
-            self.contentInsets = make.left.mas_equalTo(self.separatorView.mas_right).with.insets(UIEdgeInsetsMake(0, self.insetsContentView, 0, 0));
+            make.right.equalTo(self.view);
+            make.top.equalTo(self.view);
+            make.bottom.equalTo(self.view);
+            self.contentInsets = make.left.equalTo(self.separatorView.mas_right).with.insets(UIEdgeInsetsMake(0, self.insetsContentView, 0, 0));
         }];
     }
     else
     {
         [self.firstView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.left.mas_equalTo(self.view);
-            make.top.mas_equalTo(self.view);
-            make.bottom.mas_equalTo(self.view);
-            self.contentInsets = make.right.mas_equalTo(self.separatorView.mas_left).with.insets(UIEdgeInsetsMake(0, 0, 0, self.insetsContentView));
+            make.left.equalTo(self.view);
+            make.top.equalTo(self.view);
+            make.bottom.equalTo(self.view);
+            self.contentInsets = make.right.equalTo(self.separatorView.mas_left).with.insets(UIEdgeInsetsMake(0, 0, 0, self.insetsContentView));
             
         }];
         
         [self.separatorView mas_makeConstraints:^(MASConstraintMaker *make) {
-            make.top.mas_equalTo(self.view);
-            make.bottom.mas_equalTo(self.view);
-            make.width.mas_equalTo(@(1 / [UIScreen mainScreen].scale));
-            make.right.mas_equalTo(self.secondView.mas_left);
+            make.top.equalTo(self.view);
+            make.bottom.equalTo(self.view);
+            make.width.equalTo(@1);
+            make.right.equalTo(self.secondView.mas_left);
         }];
         
         [self.secondView mas_makeConstraints:^(MASConstraintMaker *make) {
             self.lateralWidth = make.width.equalTo(@(self.lateralViewWidth));
-            make.right.mas_equalTo(self.view);
-            make.top.mas_equalTo(self.view);
-            make.bottom.mas_equalTo(self.view);
+            make.right.equalTo(self.view);
+            make.top.equalTo(self.view);
+            make.bottom.equalTo(self.view);
         }];
     }
 }
 
 - (void)hideLateralViewAnimated:(BOOL)animated {
     _isCompact = YES;
-    self.lateralWidth.mas_equalTo(@(0));
+    self.lateralWidth.equalTo(@(0));
     self.contentInsets.with.insets(UIEdgeInsetsMake(0, 0, 0, 0));
     if (animated)
         [UIView animateWithDuration:0.35 animations:^{
@@ -499,7 +506,7 @@
 
 - (void)showLateralViewAnimated:(BOOL)animated {
     _isCompact = NO;
-    self.lateralWidth.mas_equalTo(@(self.lateralViewWidth));
+    self.lateralWidth.equalTo(@(self.lateralViewWidth));
     self.contentInsets.with.insets(UIEdgeInsetsMake(0, 0, 0, self.insetsContentView));
     if (animated)
         [UIView animateWithDuration:0.35 animations:^{
@@ -511,7 +518,7 @@
 
 - (void)updateLateralViewForPortrait {
     _isCompact = YES;
-    self.lateralWidth.mas_equalTo(@(self.lateralMinimumViewWidth));
+    self.lateralWidth.equalTo(@(self.lateralMinimumViewWidth));
     self.contentInsets.with.insets(UIEdgeInsetsMake(0, 0, 0, self.insetsContentView));
     
     if (self.lateralViewController && [self.lateralViewController respondsToSelector:@selector(didUpdateLateralViewInterafaceWithWidth:compact:)])
@@ -520,7 +527,7 @@
 
 - (void)updateLateralViewForLandscape {
     _isCompact = NO;
-    self.lateralWidth.mas_equalTo(@(self.lateralViewWidth));
+    self.lateralWidth.equalTo(@(self.lateralViewWidth));
     self.contentInsets.with.insets(UIEdgeInsetsMake(0, 0, 0, self.insetsContentView));
     
     if (self.lateralViewController && [self.lateralViewController respondsToSelector:@selector(didUpdateLateralViewInterafaceWithWidth:compact:)])
